@@ -37,13 +37,19 @@ endif
 
 .PHONY: clean
 
-all: simple_radio ptt_on
+all: simple_radio ptt_on sbitx_ctrl
 
 simple_radio: sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o simple_radio.o
 	$(CC) -o simple_radio sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o simple_radio.o $(LDFLAGS)
 
 ptt_on: sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o ptt_on.o
 	$(CC) -o ptt_on sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o ptt_on.o $(LDFLAGS)
+
+sbitx_ctrl: sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o sbitx_ctrl.o
+	$(CC) -o sbitx_ctrl sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o sbitx_ctrl.o $(LDFLAGS)
+
+sbitx_ctrl: sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o sbitx_ctrl.o
+	$(CC) -o sbitx_ctrl sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o sbitx_ctrl.o $(LDFLAGS)
 
 
 ptt_on.o: ptt_on.c
