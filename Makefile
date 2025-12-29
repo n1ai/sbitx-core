@@ -48,10 +48,6 @@ ptt_on: sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o ptt_on.o
 sbitx_ctrl: sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o sbitx_ctrl.o
 	$(CC) -o sbitx_ctrl sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o sbitx_ctrl.o $(LDFLAGS)
 
-sbitx_ctrl: sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o sbitx_ctrl.o
-	$(CC) -o sbitx_ctrl sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o sbitx_ctrl.o $(LDFLAGS)
-
-
 ptt_on.o: ptt_on.c
 	$(CC) -c $(CFLAGS) ptt_on.c -o ptt_on.o
 
@@ -71,7 +67,16 @@ sbitx_core.o: sbitx_core.c sbitx_core.h
 sbitx_si5351.o: sbitx_si5351.c sbitx_si5351.h
 	$(CC) -c $(CFLAGS) sbitx_si5351.c -o sbitx_si5351.o
 
+install_simple_radio:
+	install -m 755 simple_radio /usr/local/bin/simple_radio
 
+install_ptt_on:
+	install -m 755 ptt_on /usr/local/bin/ptt_on
+
+install_sbitx_ctrl:
+	install -m 755 sbitx_ctrl /usr/local/bin/sbitx_ctrl
+
+install: install_simple_radio install_ptt_on install_sbitx_ctrl
 
 clean:
 	rm -f simple_radio ptt_on *.o
