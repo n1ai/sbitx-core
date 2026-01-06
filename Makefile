@@ -22,7 +22,8 @@
 uname_p := $(shell uname -m)
 
 CC=gcc
-LDFLAGS=-lwiringPi -li2c
+#LDFLAGS=-lwiringPi -li2c
+LDFLAGS=/home/pi/WiringPi/wiringPi/libwiringPi.so.3.16 -li2c
 
 ifeq (${uname_p},aarch64)
 # aarch64 Raspberry Pi 4 or better
@@ -34,26 +35,26 @@ else
 	CFLAGS=-O3 -Wall -std=gnu11 -fstack-protector -march=x86-64-v2
 endif
 
+OBJS = sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o detect_pi5.o
 
 .PHONY: clean
 
 all: simple_radio ptt_on sbitx_ctrl
 
-simple_radio: sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o simple_radio.o
-	$(CC) -o simple_radio sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o simple_radio.o $(LDFLAGS)
+simple_radio: $(OBJS) simple_radio.o
+	$(CC) -o simple_radio simple_radio.o $(OBJS) $(LDFLAGS)
 
-ptt_on: sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o ptt_on.o
-	$(CC) -o ptt_on sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o ptt_on.o $(LDFLAGS)
+ptt_on: $(OBJS) ptt_on.o
+	$(CC) -o ptt_on ptt_on.o $(OBJS) $(LDFLAGS)
 
-sbitx_ctrl: sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o sbitx_ctrl.o
-	$(CC) -o sbitx_ctrl sbitx_i2c.o sbitx_core.o sbitx_gpio.o sbitx_si5351.o sbitx_ctrl.o $(LDFLAGS)
+sbitx_ctrl: $(OBJS) sbitx_ctrl.o
+	$(CC) -o sbitx_ctrl sbitx_ctrl.o $(OBJS) $(LDFLAGS)
 
 ptt_on.o: ptt_on.c
 	$(CC) -c $(CFLAGS) ptt_on.c -o ptt_on.o
 
 simple_radio.o: simple_radio.c
 	$(CC) -c $(CFLAGS) simple_radio.c -o simple_radio.o
-
 
 sbitx_gpio.o: sbitx_gpio.c sbitx_gpio.h
 	$(CC) -c $(CFLAGS) sbitx_gpio.c -o sbitx_gpio.o
@@ -67,16 +68,19 @@ sbitx_core.o: sbitx_core.c sbitx_core.h
 sbitx_si5351.o: sbitx_si5351.c sbitx_si5351.h
 	$(CC) -c $(CFLAGS) sbitx_si5351.c -o sbitx_si5351.o
 
-install_simple_radio:
+detect_pi5.o: detect_pi5.c 
+	$(CC) -c $(CFLAGS) detect_pi5.c -o detect_pi5.o
+
+install_simple_radio: simple_radio
 	install -m 755 simple_radio /usr/local/bin/simple_radio
 
-install_ptt_on:
+install_ptt_on: ptt_on
 	install -m 755 ptt_on /usr/local/bin/ptt_on
 
-install_sbitx_ctrl:
+install_sbitx_ctrl: sbitx_ctrl
 	install -m 755 sbitx_ctrl /usr/local/bin/sbitx_ctrl
 
 install: install_simple_radio install_ptt_on install_sbitx_ctrl
 
 clean:
-	rm -f simple_radio ptt_on *.o
+	rm -f simple_radio ptt_on sbitx_ctrl $(OBJS)

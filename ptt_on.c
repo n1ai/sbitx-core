@@ -28,6 +28,7 @@
 #include <signal.h>
 
 #include "sbitx_core.h"
+#include "detect_pi5.h"
 
 int shutdown = 0;
 
@@ -51,7 +52,10 @@ int main(int argc, char *argv[])
 
     // these are mandatory fields to be filled before hw_init()
     memset(&radio_h, 0, sizeof(radio));
-    strcpy(radio_h.i2c_device, "/dev/i2c-22");
+    if (is_pi5())
+      strcpy(radio_h.i2c_device, "/dev/i2c-13");
+    else 
+      strcpy(radio_h.i2c_device, "/dev/i2c-22");
     radio_h.bfo_frequency = 40035000;
     radio_h.bridge_compensation = 100;
 

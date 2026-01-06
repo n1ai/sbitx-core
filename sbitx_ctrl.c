@@ -17,6 +17,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <getopt.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -26,6 +27,19 @@
 #include <unistd.h>
 
 #include "sbitx_core.h"
+#include "detect_pi5.h"
+
+/* Verbose logging flag and helper */
+static int g_verbose = 0;
+static void vlogf(const char *fmt, ...)
+{
+  if (!g_verbose)
+    return;
+  va_list ap;
+  va_start(ap, fmt);
+  vprintf(fmt, ap);
+  va_end(ap);
+}
 
 static volatile int g_shutdown = 0;
 
@@ -96,6 +110,8 @@ static void *client_thread(void *arg) {
     if (n == 0)
       continue;
 
+    vlogf("client(fd=%d) command: %s\n", fd, line);
+
     // Commands:
     // f
     // F <hz>
@@ -154,14 +170,28 @@ static void *client_thread(void *arg) {
 }
 
 int main(int argc, char **argv) {
-  (void)argc;
-  (void)argv;
+
+  // command line options
+  for (int i = 1; i < argc; i++) {
+      // verbose option
+      if (strcmp(argv[i], "-v") == 0 ||
+          strcmp(argv[i], "--verbose") == 0) {
+          g_verbose = 1;
+          break;
+      }
+  }
 
   signal(SIGINT, on_sigint);
 
   memset(&g_radio, 0, sizeof(g_radio));
   // These must match your working "simple radio" app:
-  strcpy(g_radio.i2c_device, "/dev/i2c-22");
+  if (is_pi5()) {
+    vlogf("running on a pi5\n");
+    strcpy(g_radio.i2c_device, "/dev/i2c-13");
+  } else  {
+    vlogf("not running on a pi5\n");
+    strcpy(g_radio.i2c_device, "/dev/i2c-22");
+  } 
   g_radio.bfo_frequency = 40035000;
   g_radio.bridge_compensation = 100;
 
@@ -199,7 +229,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  printf("sbitx_ctrl listening on 127.0.0.1:9999\n");
+  vlogf("sbitx_ctrl listening on 127.0.0.1:9999\n");
+  vlogf("verbose mode enabled for sbitx_ctrl\n");
   fflush(stdout);
 
   while (!g_shutdown) {
@@ -210,6 +241,7 @@ int main(int argc, char **argv) {
       perror("accept");
       continue;
     }
+    vlogf("client connected (fd=%d)\n", fd);
     pthread_t th;
     pthread_create(&th, NULL, client_thread, (void *)(intptr_t)fd);
     pthread_detach(th);

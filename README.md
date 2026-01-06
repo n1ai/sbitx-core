@@ -49,15 +49,17 @@ Just type "make" to build the two example applications.
 
 # Usage
 
-Both syntax are identical:
+Both syntax are identical (the control server `sbitx_ctrl` supports an optional verbose flag):
 
 ```
 # ptt_on <frequency in Hz>
 # simple_radio <frequency in Hz>
+# sbitx_ctrl [-v|--verbose]
 ```
 
 * ptt_on: enables the transmission line, and disables at exit (use Ctrl+C)
 * simple_radio: a simple radio implementation which allows for debugging most of radio features
+* sbitx_ctrl: listens for control commands on 127.0.0.1:9999; use `-v` or `--verbose` to enable extra runtime logs for debugging
 
 # Tinkerer tips
 
